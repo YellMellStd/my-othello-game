@@ -53,14 +53,14 @@
 ### オンラインでプレイ
 
 GitHub Pagesで公開されているバージョンをプレイできます：
-[https://yourusername.github.io/othello-game/](https://yourusername.github.io/othello-game/)
+[https://yellmellstd.github.io/my-othello-game/](https://yellmellstd.github.io/my-othello-game/)
 
 ### ローカルでプレイ
 
 1. リポジトリをクローン
 ```bash
-git clone https://github.com/yourusername/othello-game.git
-cd othello-game
+git clone https://github.com/YellMellStd/my-othello-game.git
+cd my-othello-game
 ```
 
 2. ブラウザで開く
@@ -119,5 +119,5 @@ othello-game/
 ---
 
 <p align="center">
-  Made with by [YellowMellowLab.]
+  Made with by [YellowMellowStudio]
 </p>
