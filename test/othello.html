@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オセロゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #2c3e50;
+            color: white;
+        }
+        .game-container {
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+            gap: 2px;
+            background-color: #34495e;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 0 auto;
+        }
+        .cell {
+            background-color: #27ae60;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .cell:hover.valid {
+            background-color: #2ecc71;
+        }
+        .piece {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .black {
+            background-color: #2c3e50;
+            border: 2px solid #34495e;
+        }
+        .white {
+            background-color: #ecf0f1;
+            border: 2px solid #bdc3c7;
+        }
+        .hint {
+            width: 10px;
+            height: 10px;
+            background-color: #f39c12;
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+        .info {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .score {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .reset-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .reset-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>オセロゲーム</h1>
+        <div class="score">
+            <div>黒: <span id="black-score">2</span></div>
+            <div>白: <span id="white-score">2</span></div>
+        </div>
+        <div class="board" id="board"></div>
+        <div class="info">
+            <div>現在のターン: <span id="current-player">黒</span></div>
+            <button class="reset-btn" onclick="resetGame()">ゲームをリセット</button>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_SIZE = 8;
+        const EMPTY = 0;
+        const BLACK = 1;
+        const WHITE = 2;
+        
+        let board = [];
+        let currentPlayer = BLACK;
+        let validMoves = [];
+
+        function initializeBoard() {
+            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(EMPTY));
+            board[3][3] = WHITE;
+            board[3][4] = BLACK;
+            board[4][3] = BLACK;
+            board[4][4] = WHITE;
+        }
+
+        function createBoardElement() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener('click', handleCellClick);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function renderBoard() {
+            const cells = document.querySelectorAll('.cell');
+            
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                cell.innerHTML = '';
+                
+                if (board[row][col] === BLACK) {
+                    const piece = document.createElement('div');
+                    piece.className = 'piece black';
+                    cell.appendChild(piece);
+                } else if (board[row][col] === WHITE) {
+                    const piece = document.createElement('div');
+                    piece.className = 'piece white';
+                    cell.appendChild(piece);
+                } else if (validMoves.some(move => move.row === row && move.col === col)) {
+                    const hint = document.createElement('div');
+                    hint.className = 'hint';
+                    cell.appendChild(hint);
+                    cell.classList.add('valid');
+                } else {
+                    cell.classList.remove('valid');
+                }
+            });
+
+            updateScore();
+            updateCurrentPlayer();
+        }
+
+        function isValidPosition(row, col) {
+            return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
+        }
+
+        function checkDirection(row, col, dRow, dCol, player) {
+            const opponent = player === BLACK ? WHITE : BLACK;
+            let r = row + dRow;
+            let c = col + dCol;
+            let found = false;
+
+            while (isValidPosition(r, c) && board[r][c] === opponent) {
+                r += dRow;
+                c += dCol;
+                found = true;
+            }
+
+            if (found && isValidPosition(r, c) && board[r][c] === player) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function isValidMove(row, col, player) {
+            if (board[row][col] !== EMPTY) return false;
+
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],          [0, 1],
+                [1, -1], [1, 0], [1, 1]
+            ];
+
+            for (const [dRow, dCol] of directions) {
+                if (checkDirection(row, col, dRow, dCol, player)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function getValidMoves(player) {
+            const moves = [];
+            
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (isValidMove(row, col, player)) {
+                        moves.push({ row, col });
+                    }
+                }
+            }
+
+            return moves;
+        }
+
+        function flipDiscs(row, col, player) {
+            const opponent = player === BLACK ? WHITE : BLACK;
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],          [0, 1],
+                [1, -1], [1, 0], [1, 1]
+            ];
+
+            for (const [dRow, dCol] of directions) {
+                if (checkDirection(row, col, dRow, dCol, player)) {
+                    let r = row + dRow;
+                    let c = col + dCol;
+
+                    while (board[r][c] === opponent) {
+                        board[r][c] = player;
+                        r += dRow;
+                        c += dCol;
+                    }
+                }
+            }
+        }
+
+        function makeMove(row, col) {
+            if (!isValidMove(row, col, currentPlayer)) return false;
+
+            board[row][col] = currentPlayer;
+            flipDiscs(row, col, currentPlayer);
+            
+            currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+            validMoves = getValidMoves(currentPlayer);
+
+            if (validMoves.length === 0) {
+                currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+                validMoves = getValidMoves(currentPlayer);
+                
+                if (validMoves.length === 0) {
+                    endGame();
+                }
+            }
+
+            renderBoard();
+            return true;
+        }
+
+        function handleCellClick(event) {
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+            makeMove(row, col);
+        }
+
+        function updateScore() {
+            let blackCount = 0;
+            let whiteCount = 0;
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (board[row][col] === BLACK) blackCount++;
+                    else if (board[row][col] === WHITE) whiteCount++;
+                }
+            }
+
+            document.getElementById('black-score').textContent = blackCount;
+            document.getElementById('white-score').textContent = whiteCount;
+        }
+
+        function updateCurrentPlayer() {
+            document.getElementById('current-player').textContent = currentPlayer === BLACK ? '黒' : '白';
+        }
+
+        function endGame() {
+            const blackScore = parseInt(document.getElementById('black-score').textContent);
+            const whiteScore = parseInt(document.getElementById('white-score').textContent);
+            
+            let message = 'ゲーム終了！\n';
+            if (blackScore > whiteScore) {
+                message += `黒の勝利！ (${blackScore} - ${whiteScore})`;
+            } else if (whiteScore > blackScore) {
+                message += `白の勝利！ (${whiteScore} - ${blackScore})`;
+            } else {
+                message += `引き分け！ (${blackScore} - ${whiteScore})`;
+            }
+            
+            setTimeout(() => alert(message), 100);
+        }
+
+        function resetGame() {
+            initializeBoard();
+            currentPlayer = BLACK;
+            validMoves = getValidMoves(currentPlayer);
+            renderBoard();
+        }
+
+        // ゲーム開始
+        initializeBoard();
+        createBoardElement();
+        validMoves = getValidMoves(currentPlayer);
+        renderBoard();
+    </script>
+</body>
+</html>
