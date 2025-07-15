@@ -16,7 +16,7 @@
 
 ## 🎮 デモ / Demo
 
-[こちらでプレイできます / Play it here](https://yourusername.github.io/othello-game/)
+[こちらでプレイできます / Play it here](https://yellmellstd.github.io/my-othello-game/)
 
 ## 📷 スクリーンショット / Screenshot
 
