@@ -90,7 +90,7 @@ xdg-open index.html
 ## 📁 プロジェクト構成 / Project Structure
 
 ```
-othello-game/
+my-othello-game/
 ├── index.html      # メインのHTMLファイル（ゲーム本体）
 ├── README.md       # このファイル
 ├── LICENSE         # MITライセンス
