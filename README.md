@@ -119,5 +119,5 @@ othello-game/
 ---
 
 <p align="center">
-  Made with ❤️ by [Your Name]
+  Made with by [YellowMellowLab.]
 </p>
