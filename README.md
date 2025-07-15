@@ -21,7 +21,7 @@
 ## 📷 スクリーンショット / Screenshot
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="Othello Game Screenshot" width="600">
+  <img src="https://github.com/user-attachments/assets/d698eeff-0d2e-40f1-b3b7-fb1b5d8926a8" alt="Othello Game Screenshot" width="600">
 </p>
 
 ## ✨ 特徴 / Features
